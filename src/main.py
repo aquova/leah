@@ -16,7 +16,8 @@ async def on_reaction_add(reaction, user):
     if reaction.message.channel.id != VERIFY_CHAN or client.user != reaction.message.author:
         return
     txt = reaction.message.content.split('\n')
-    embed = discord.Embed(title=f"Some amazing art by {str(user)}", type="rich", color=user.color, description=txt[-2])
+    other = reaction.message.mentions[0]
+    embed = discord.Embed(title=f"Some amazing art by {str(other)}", type="rich", color=other.color, description=txt[-2])
     embed.set_image(url=txt[-1])
     gallery = client.get_channel(GALLERY_CHAN)
     await gallery.send(embed=embed)
