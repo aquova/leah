@@ -13,11 +13,11 @@ async def on_ready():
 
 @client.event
 async def on_reaction_add(reaction, user):
-    if reaction.message.channel.id != VERIFY_CHAN or user != client.user:
+    if reaction.message.channel.id != VERIFY_CHAN or client.user != reaction.message.author:
         return
-    embed = discord.Embed(title=f"Some amazing art by {str(user)}", type="rich", color=user.color)
-    url = reaction.message.content.split('\n')[1]
-    embed.set_image(url=url)
+    txt = reaction.message.content.split('\n')
+    embed = discord.Embed(title=f"Some amazing art by {str(user)}", type="rich", color=user.color, description=txt[1])
+    embed.set_image(url=txt[2])
     gallery = client.get_channel(GALLERY_CHAN)
     await gallery.send(embed=embed)
 
@@ -30,6 +30,6 @@ async def on_message(message):
     if message.channel.id in ART_CHANS:
         verify = client.get_channel(VERIFY_CHAN)
         for img in message.attachments:
-            await verify.send(f"<@{message.author.id}> has posted:\n{img.url}")
+            await verify.send(f"<@{message.author.id}> has posted:\n{message.content}\n{img.url}")
 
 client.run(DISCORD_KEY)
