@@ -1,0 +1,8 @@
+version: '3'
+services:
+  leah:
+    image: aquova/leah:latest
+    restart: unless-stopped
+    volumes:
+      - ./src:/leah
+      - ./private:/private
