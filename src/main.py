@@ -5,6 +5,12 @@
 import discord
 from config import client, DISCORD_KEY, ART_CHANS, VERIFY_CHAN, GALLERY_CHAN
 
+class Leah:
+    def __init__(self):
+        self.posted = set()
+
+leah = Leah()
+
 @client.event
 async def on_ready():
     print("Logged in as:")
@@ -15,6 +21,9 @@ async def on_ready():
 async def on_reaction_add(reaction, user):
     if reaction.message.channel.id != VERIFY_CHAN or client.user != reaction.message.author:
         return
+    if reaction.message.id in leah.posted:
+        return
+    leah.posted.add(reaction.message.id)
     txt = reaction.message.content.split('\n')
     other = reaction.message.mentions[0]
     embed = discord.Embed(title=f"Some amazing art by {str(other)}", type="rich", color=other.color, description=txt[-2])
