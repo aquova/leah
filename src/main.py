@@ -36,12 +36,16 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
 
     # User reactions to posts in self-curated channel
     elif reaction.message.channel.id in MOD_CHANS:
+        # Ignore reactions from users other than the message author
+        if user != reaction.message.author:
+            return
+
         # Ignore reactions from users without any of the required roles
         if len(SHOWCASE_ROLES) == 0 or len([r for r in user.roles if r.id in SHOWCASE_ROLES]) == 0:
             return
 
-        # Ignore reactions from users other than the message author
-        if user != reaction.message.author:
+        # Ignore emoji reactions unusable by the bot
+        if not reaction.emoji.is_usable():
             return
 
         # Publish self-curated posts
@@ -76,8 +80,8 @@ async def publish_art(message: discord.Message):
     gallery = client.get_channel(id=GALLERY_CHAN)
     user = message.mentions[0]
     title = f"Some amazing art by {user}"
-    split = message.split('\n')
-    text = split[1:-2]
+    split = message.content.split('\n')
+    text = split[-2]
     embed = discord.Embed(title=title, type="rich", color=user.color, description=text)
     embed.set_image(url=split[-1])
     await send_embed(channel=gallery, embed=embed, message=message)
@@ -85,7 +89,7 @@ async def publish_art(message: discord.Message):
 async def publish_mod(message: discord.Message, reaction: discord.Reaction):
     channel = client.get_channel(id=SHOWCASE_CHAN)
     user = message.author
-    title = f"{reaction.emoji}   posted in #{str(message.channel)}"
+    title = f"{reaction.emoji} posted in #{str(message.channel)}"
     text = f"{message.content}"
     embed = discord.Embed(title=title, description=text, type="rich", color=user.color)
 
