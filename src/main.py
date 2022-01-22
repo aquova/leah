@@ -44,10 +44,6 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
         if len(SHOWCASE_ROLES) == 0 or len([r for r in user.roles if r.id in SHOWCASE_ROLES]) == 0:
             return
 
-        # Ignore emoji reactions unusable by the bot
-        if not reaction.emoji.is_usable():
-            return
-
         # Publish self-curated posts
         await reaction.message.add_reaction(emoji=reaction.emoji)
         await publish_mod(message=reaction.message, reaction=reaction)
