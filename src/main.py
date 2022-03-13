@@ -6,6 +6,7 @@ import discord
 from config import client, DISCORD_KEY,\
     ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN,\
     SHOWCASE_ROLES
+from typing import Optional
 
 class Leah:
     def __init__(self):
@@ -112,7 +113,7 @@ async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message
     leah.posted.add(message.id)
     await channel.send(embed=embed)
 
-async def get_original_author(showcase_message: discord.Message):
+async def get_original_author(showcase_message: discord.Message) -> Optional[discord.Member]:
     split_url = showcase_message.embeds[0].url.split('/')
     original_channel = showcase_message.guild.get_channel(int(split_url[-2]))
     try:
