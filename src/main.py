@@ -51,7 +51,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     # User reactions to posts in showcase channel
     elif reaction.message.channel.id == SHOWCASE_CHAN:
         # Ignore reactions from users other than the message author
-        if user != reaction.message.author:
+        if user != await get_original_author(reaction.message):
             return
 
         # Remove bulletin posts
@@ -112,5 +112,13 @@ async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message
     leah.posted.add(message.id)
     await channel.send(embed=embed)
 
+async def get_original_author(showcase_message: discord.Message):
+    split_url = showcase_message.embeds[0].url.split('/')
+    original_channel = showcase_message.guild.get_channel(int(split_url[-2]))
+    try:
+        original_message = await original_channel.fetch_message(int(split_url[-1]))
+        return original_message.author
+    except discord.DiscordException:
+        return None
 
 client.run(DISCORD_KEY)
