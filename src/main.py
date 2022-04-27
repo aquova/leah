@@ -69,12 +69,12 @@ async def on_message(message: discord.Message):
         await verify_art(message=message)
 
 async def verify_art(message: discord.Message):
-    verify = client.get_channel(id=VERIFY_CHAN)
+    verify = client.get_channel(VERIFY_CHAN)
     for img in message.attachments:
         await verify.send(f"<@{message.author.id}> has posted:\n{message.content}\n{img.url}")
 
 async def publish_art(message: discord.Message):
-    gallery = client.get_channel(id=GALLERY_CHAN)
+    gallery = client.get_channel(GALLERY_CHAN)
     user = message.mentions[0]
     title = f"Some amazing art by {user}"
     split = message.content.split('\n')
@@ -84,7 +84,7 @@ async def publish_art(message: discord.Message):
     await send_embed(channel=gallery, embed=embed, message=message)
 
 async def publish_mod(message: discord.Message, reaction: discord.Reaction):
-    channel = client.get_channel(id=SHOWCASE_CHAN)
+    channel = client.get_channel(SHOWCASE_CHAN)
     user = message.author
     title = f"{reaction.emoji} posted in #{str(message.channel)}"
     text = f"{message.content}"
