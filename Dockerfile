@@ -1,3 +1,3 @@
-FROM aquova/commonbot:1.7.3.1
+FROM aquova/commonbot:2.0.0b1
 
 CMD ["python3", "-u", "/leah/main.py"]
