@@ -105,7 +105,7 @@ async def publish_mod(message: discord.Message, reaction: discord.Reaction):
 
     # Fill in embed info with original message context
     embed.url = message.jump_url
-    embed.set_author(name=user.display_name, url=embed.url, icon_url=user.avatar_url)
+    embed.set_author(name=user.display_name, url=embed.url, icon_url=user.display_avatar.url)
 
     await send_embed(channel=channel, embed=embed, message=message)
 
