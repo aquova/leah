@@ -46,7 +46,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             return
 
         # Publish self-curated posts
-        await reaction.message.add_reaction(emoji=reaction.emoji)
+        await reaction.message.add_reaction(reaction.emoji)
         await publish_mod(message=reaction.message, reaction=reaction)
 
     # User reactions to posts in showcase channel
