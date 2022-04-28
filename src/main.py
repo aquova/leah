@@ -95,12 +95,12 @@ async def publish_mod(message: discord.Message, reaction: discord.Reaction):
     if len(message.embeds) > 0:
         e = message.embeds[0]
         url = e.image.proxy_url
-        if url is discord.embeds.EmptyEmbed:
+        if url is None:
             url = e.thumbnail.proxy_url
     else:
         if len(message.attachments) > 0:
             url = message.attachments[0].url
-    if url is not None and url is not discord.embeds.EmptyEmbed:
+    if url is not None:
         embed.set_image(url=url)
 
     # Fill in embed info with original message context
