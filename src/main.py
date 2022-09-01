@@ -1,6 +1,7 @@
 # Leah
 # Written by aquova et al., 2022
 # https://github.com/aquova/leah
+import asyncio
 
 import discord
 from config import client, DISCORD_KEY,\
@@ -122,4 +123,8 @@ async def get_original_author(showcase_message: discord.Message) -> Optional[dis
     except discord.DiscordException:
         return None
 
-client.run(DISCORD_KEY)
+async def main():
+    async with client:
+        await client.start(DISCORD_KEY)
+
+asyncio.run(main())
