@@ -12,5 +12,5 @@ GALLERY_CHAN = cfg['channels']['gallery']
 SHOWCASE_CHAN = cfg['channels']['showcase']
 SHOWCASE_ROLES = cfg['roles']['showcase']
 
-intents = discord.Intents.all()
+intents: discord.Intents = discord.Intents(**{flag: True for flag in cfg["intents"]})
 client = discord.Client(intents=intents)
