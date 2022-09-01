@@ -1,4 +1,4 @@
-import discord, json
+import discord, json, strings
 
 CONFIG_PATH = "/private/config.json"
 with open(CONFIG_PATH) as config_file:
@@ -13,4 +13,6 @@ SHOWCASE_CHAN = cfg['channels']['showcase']
 SHOWCASE_ROLES = cfg['roles']['showcase']
 
 intents: discord.Intents = discord.Intents(**{flag: True for flag in cfg["intents"]})
-client = discord.Client(intents=intents)
+client = discord.Client(
+    intents=intents,
+    description=strings.get("client_description"))

@@ -1,8 +1,9 @@
 # Leah
 # Written by aquova et al., 2022
 # https://github.com/aquova/leah
-import asyncio
 
+import asyncio
+import strings
 import discord
 from config import client, DISCORD_KEY,\
     ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN,\
@@ -17,9 +18,7 @@ leah = Leah()
 
 @client.event
 async def on_ready():
-    print("Logged in as:")
-    print(client.user.name)
-    print(client.user.id)
+    print(strings.get("client_login").format(client.user.name, client.user.discriminator, client.user.id))
 
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
@@ -72,12 +71,12 @@ async def on_message(message: discord.Message):
 async def verify_art(message: discord.Message):
     verify = client.get_channel(VERIFY_CHAN)
     for img in message.attachments:
-        await verify.send(f"<@{message.author.id}> has posted:\n{message.content}\n{img.url}")
+        await verify.send(strings.get("title_verify").format(f"<@{message.author.id}>", message.content, img.url))
 
 async def publish_art(message: discord.Message):
     gallery = client.get_channel(GALLERY_CHAN)
     user = message.mentions[0]
-    title = f"Some amazing art by {user}"
+    title = strings.get("title_gallery").format(user)
     split = message.content.split('\n')
     text = split[-2]
     embed = discord.Embed(title=title, type="rich", color=user.color, description=text)
@@ -87,8 +86,8 @@ async def publish_art(message: discord.Message):
 async def publish_mod(message: discord.Message, reaction: discord.Reaction):
     channel = client.get_channel(SHOWCASE_CHAN)
     user = message.author
-    title = f"{reaction.emoji} posted in #{str(message.channel)}"
-    text = f"{message.content}"
+    title = strings.get("title_showcase").format(reaction.emoji, str(message.channel))
+    text = message.content
     embed = discord.Embed(title=title, description=text, type="rich", color=user.color)
 
     # Include original embedded content
