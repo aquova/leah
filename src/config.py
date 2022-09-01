@@ -1,3 +1,8 @@
+# Leah
+# config.py
+# Written by aquova et al., 2022
+# https://github.com/StardewValleyDiscord/leah
+
 import discord, json, strings
 
 CONFIG_PATH = "/private/config.json"

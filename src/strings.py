@@ -1,7 +1,7 @@
 # Leah
 # strings.py
 # Written by aquova et al., 2022
-# https://github.com/StardewValleyDiscord/Leah
+# https://github.com/StardewValleyDiscord/leah
 
 import json
 

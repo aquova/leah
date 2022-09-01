@@ -1,6 +1,7 @@
 # Leah
+# main.py
 # Written by aquova et al., 2022
-# https://github.com/aquova/leah
+# https://github.com/StardewValleyDiscord/leah
 
 import asyncio
 import strings
