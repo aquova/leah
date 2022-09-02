@@ -52,7 +52,7 @@ async def on_message(message: discord.Message) -> None:
     if message.channel.id in ART_CHANS:
         await verify_art(message=message)
 
-@bot.tree.context_menu(name="Publish", guilds=GUILDS)
+@bot.tree.context_menu(name=strings.get("app_name_publish"), guilds=GUILDS)
 async def command_publish(interaction: discord.Interaction, message: discord.Message):
     """
     Reposts a message from a self-curated or verification channel as a formatted embed to a showcase or gallery channel,
