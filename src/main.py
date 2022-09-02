@@ -153,7 +153,7 @@ async def verify_art(message: discord.Message) -> None:
 
 async def publish_art(message: discord.Message) -> bool:
     """
-    Creates a published message with embedded content for the bot to report in the gallery channel.
+    Creates a published message with embedded content for the bot to repost in the gallery channel.
     """
     gallery = bot.get_channel(GALLERY_CHAN)
     try:

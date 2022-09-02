@@ -16,8 +16,8 @@
   "commands_response_commands": "Commands are reloaded.",
   "commands_error_roles": "You need one of these {1} to use this command: {0}",
 
-  "publish_response_verified": "Published in {0}!",
-  "publish_response_curated_self": "Published in {0}! Use this command on the showcase post in that channel to remove it.",
+  "publish_response_verified": "Published in the {0}!",
+  "publish_response_curated_self": "Published in the {0}!\nUse this command on the showcase post in that channel to remove it.",
   "publish_response_remove_self": "Your showcase post has been removed.",
   "publish_error_curated_other": "You can't publish posts by other users.",
   "publish_error_remove_other": "You can't remove posts by other users.",
