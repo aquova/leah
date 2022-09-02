@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 from config import COMMAND_PREFIX, EXTENSIONS, GUILDS, DISCORD_KEY, DISCORD_INTENTS, \
     ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES
+from importlib import reload
 from typing import Optional
 from utils import check_roles, format_roles_error
 
@@ -34,6 +35,9 @@ class Leah(commands.Bot):
 
     async def on_ready(self):
         print(strings.get("client_login").format(bot.user.name, bot.user.discriminator, bot.user.id))
+
+    def reload_strings(self):
+        reload(strings)
 
 
 bot = Leah()
@@ -71,7 +75,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Ignore interactions from users without any of the required roles
         if not check_roles(interaction.user, VERIFY_ROLES):
-            reply = format_roles_error(VERIFY_ROLES)
+            reply = format_roles_error(strings.get("commands_error_roles"), VERIFY_ROLES)
 
         # Ignore messages that have been handled previously
         elif message.id in bot.posted:
@@ -91,7 +95,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Ignore interactions from users without any of the required roles
         if not check_roles(interaction.user, SHOWCASE_ROLES):
-            reply = format_roles_error(SHOWCASE_ROLES)
+            reply = format_roles_error(strings.get("commands_error_roles"), SHOWCASE_ROLES)
 
         # Ignore interactions from users other than the message author
         elif interaction.user != message.author or not isinstance(interaction.user, discord.Member):

@@ -9,12 +9,13 @@ from discord.ext.commands import Context
 from config import ROLES_CHAN, ADMIN_ROLES
 from typing import Union
 
-def format_roles_error(roles):
+def format_roles_error(error, roles):
     """
+    :param error: Unformatted error message.
     :param roles: List of required roles to display in the error message.
     :return: Formatted error message.
     """
-    return strings.get("commands_error_roles").format(", ".join([f"<@&{role}>" for role in roles]), f"<#{ROLES_CHAN}>")
+    return error.format(", ".join([f"<@&{role}>" for role in roles]), f"<#{ROLES_CHAN}>")
 
 def check_roles(user: Union[discord.User, discord.Member], roles) -> bool:
     """
