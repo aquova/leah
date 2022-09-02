@@ -3,7 +3,8 @@
 # Written by aquova et al., 2022
 # https://github.com/StardewValleyDiscord/leah
 
-import discord, json
+import discord
+import json
 
 # Read config file
 CONFIG_PATH = "./private/config.json"
@@ -19,7 +20,7 @@ VERIFY_CHAN = cfg["channels"]["verify"]
 GALLERY_CHAN = cfg["channels"]["gallery"]
 SHOWCASE_CHAN = cfg["channels"]["showcase"]
 ROLES_CHAN = cfg["channels"]["roles"]
-ADMIN_ROLES = cfg["roles"]["admin"]
+ADMIN_ROLE = cfg["roles"]["admin"]
 VERIFY_ROLES = cfg["roles"]["verify"]
 SHOWCASE_ROLES = cfg["roles"]["showcase"]
 EXTENSIONS = cfg["extensions"]

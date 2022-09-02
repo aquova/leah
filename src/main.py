@@ -8,7 +8,7 @@ import strings
 import discord
 from discord.ext import commands
 from config import COMMAND_PREFIX, EXTENSIONS, GUILDS, DISCORD_KEY, DISCORD_INTENTS, \
-    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES
+    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, ADMIN_ROLE
 from importlib import reload
 from typing import Optional
 from utils import check_roles, format_roles_error
@@ -70,7 +70,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         reaction_users.append([user async for user in reaction.users()])
     posted = bot.user in sum(reaction_users, [])  # We avoid duplicate publish actions by checking for reactions
 
-    # Staff interactions on verification channel posts by this bot
+    # Interactions on verification channel posts by this bot
     if message.channel.id == VERIFY_CHAN:
 
         # Verification errors are shown to all to avoid repeat attempts
@@ -119,10 +119,16 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     # User interactions on posts in showcase channel
     elif message.channel.id == SHOWCASE_CHAN:
 
+        # Skip the usual role check when trying to remove posts
         # Users without a showcase role may still remove any of their posts from the showcase
+        linked_message = await get_linked_message(repost_message=message)
+
+        # Ignore remove attempts on broken links
+        if linked_message is None:
+            reply = strings.get("publish_error_remove").format(f"<@&{ADMIN_ROLE}>")
 
         # Ignore interactions from users other than the message author
-        if interaction.user != await get_original_author(message):
+        elif interaction.user != linked_message.author:
             reply = strings.get("publish_error_remove_other")
 
         # Remove showcase posts
@@ -155,7 +161,7 @@ async def verify_art(message: discord.Message) -> None:
     """
     verify = bot.get_channel(VERIFY_CHAN)
     for img in message.attachments:
-        await verify.send(strings.get("message_verify").format(f"<@{message.author.id}>", message.content, img.url))
+        await verify.send(strings.get("message_verify").format(f"<@{message.author.id}>", message.content, img.url, message.jump_url))
 
 async def publish_art(message: discord.Message) -> bool:
     """
@@ -163,12 +169,19 @@ async def publish_art(message: discord.Message) -> bool:
     """
     gallery = bot.get_channel(GALLERY_CHAN)
     try:
-        member = await message.guild.fetch_member(message.raw_mentions[0])
-        title = random.choice(strings.get("message_gallery")).format(member)
+        author = await message.guild.fetch_member(message.raw_mentions[0])
+        linked_message = await get_linked_message(repost_message=message)
+        title = random.choice(strings.get("message_gallery")).format(str(linked_message.channel))
         split = message.content.split("\n")
-        text = split[-2]
-        embed = discord.Embed(title=title, type="rich", color=member.color, description=text)
+        # Add original text content
+        text = "\n".join(split[1:-2])
+        embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+        # Add original embedded content
         embed.set_image(url=split[-1])
+        # Add jumplink to original message
+        embed.url = split[-2]
+        # Add user preview
+        embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
         await send_embed(channel=gallery, embed=embed, message=message)
     except:
         return False
@@ -179,12 +192,12 @@ async def publish_mod(message: discord.Message) -> None:
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
-    user = message.author
+    author = message.author
     title = strings.get("message_showcase").format(str(message.channel))
+    # Add original text content
     text = message.content
-    embed = discord.Embed(title=title, description=text, type="rich", color=user.color)
-
-    # Include original embedded content
+    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+    # Add original embedded content
     url = None
     if len(message.embeds) > 0:
         e = message.embeds[0]
@@ -196,11 +209,10 @@ async def publish_mod(message: discord.Message) -> None:
             url = message.attachments[0].url
     if url is not None:
         embed.set_image(url=url)
-
-    # Fill in embed info with original message context
+    # Add jumplink to original message
     embed.url = message.jump_url
-    embed.set_author(name=user.display_name, url=embed.url, icon_url=user.display_avatar.url)
-
+    # Add user preview
+    embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
     await send_embed(channel=channel, embed=embed, message=message)
 
 async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> None:
@@ -213,21 +225,22 @@ async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message
     # We don't do anything else here currently :/
     await channel.send(embed=embed)
 
-async def get_original_author(showcase_message: discord.Message) -> Optional[discord.Member]:
+async def get_linked_message(repost_message: discord.Message) -> Optional[discord.Message]:
     """
     Showcase messages are bot-reposts of other user-created messages.
 
     We can fetch the user who authored the original message by following the jumplink from the repost.
-    :param showcase_message: A message posted in any showcase channel.
+    :param repost_message: A message posted in any showcase channel.
     :return: The original author of a given self-curated showcase message, or None if not found.
     """
-    # We store a jumplink to the original message in the embed URL, as created in publish_mod()
-    split_url = showcase_message.embeds[0].url.split("/")
-    original_channel = showcase_message.guild.get_channel(int(split_url[-2]))
     try:
+        # A jumplink to the original message in the embed URL for us to parse here
+        url = repost_message.content.split("\n")[-2] if repost_message.channel.id == VERIFY_CHAN else repost_message.embeds[0].url
+        split_url = url.split("/")
+        original_channel = repost_message.guild.get_channel(int(split_url[-2]))
         original_message = await original_channel.fetch_message(int(split_url[-1]))
-        return original_message.author
-    except discord.DiscordException:
+        return original_message
+    except:
         return None
 
 

@@ -6,7 +6,7 @@
 import strings
 import discord
 from discord.ext.commands import Context
-from config import ROLES_CHAN, ADMIN_ROLES
+from config import ROLES_CHAN, ADMIN_ROLE
 from typing import Union
 
 def format_roles_error(error, roles):
@@ -33,4 +33,4 @@ def requires_admin(ctx: Context):
 
     Command check for whether the author doesn't have an admin role.
     """
-    return check_roles(ctx.message.author, ADMIN_ROLES)
+    return check_roles(ctx.message.author, [ADMIN_ROLE])

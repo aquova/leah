@@ -3,10 +3,13 @@
   "client_description": "Stardew Valley Discord content showcase bot",
   "client_login": "Logged in as {0}#{1} ({2})",
 
-  "message_verify": "{0} has posted:\n{1}\n{2}",
+  "message_verify": "{0} has posted:\n{1}\n{3}\n{2}",
   "message_showcase": "posted in #{0}",
   "message_gallery": [
-    "Some amazing art by {0}"
+    "shared their art in #{0}",
+    "drew an artwork for #{0}",
+    "posted in #{0}",
+    "painted in #{0}"
   ],
 
   "app_name_publish": "Publish",
@@ -21,6 +24,7 @@
   "publish_response_remove_self": "Your showcase post has been removed.",
   "publish_error_curated_other": "You can't publish posts by other users.",
   "publish_error_remove_other": "You can't remove posts by other users.",
+  "publish_error_remove": "Couldn't remove this post.\nAsk a {0} for help!",
   "publish_error_user": "You can't publish posts from this user.",
   "publish_error_channel": "You can't publish posts from this channel.",
   "publish_error_posted": "This post has already been published.",
