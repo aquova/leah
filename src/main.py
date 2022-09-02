@@ -131,14 +131,15 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         reply = strings.get("publish_error_channel")
 
     # Send a secret reply to the commander
+    emoji = strings.emoji_success if success else strings.emoji_failure
     if reply is None:
         reply = strings.get("publish_error_generic")
-    await interaction.response.send_message(reply, ephemeral=True)
+    await interaction.response.send_message(f"{emoji}\t{reply}", ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
     try:
         if success or not fail_quietly:
-            await message.add_reaction(strings.emoji_success if success else strings.emoji_failure)
+            await message.add_reaction(emoji)
     except:
         return
 
