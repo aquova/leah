@@ -159,7 +159,7 @@ async def publish_art(message: discord.Message) -> bool:
     try:
         member = await message.guild.fetch_member(message.raw_mentions[0])
         title = random.choice(strings.get("message_gallery")).format(member)
-        split = message.content.split('\n')
+        split = message.content.split("\n")
         text = split[-2]
         embed = discord.Embed(title=title, type="rich", color=member.color, description=text)
         embed.set_image(url=split[-1])
@@ -216,7 +216,7 @@ async def get_original_author(showcase_message: discord.Message) -> Optional[dis
     :return: The original author of a given self-curated showcase message, or None if not found.
     """
     # We store a jumplink to the original message in the embed URL, as created in publish_mod()
-    split_url = showcase_message.embeds[0].url.split('/')
+    split_url = showcase_message.embeds[0].url.split("/")
     original_channel = showcase_message.guild.get_channel(int(split_url[-2]))
     try:
         original_message = await original_channel.fetch_message(int(split_url[-1]))
