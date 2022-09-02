@@ -3,3 +3,4 @@
 **/.devcontainer/*
 *.json
 **/__pycache__/*
+.idea
