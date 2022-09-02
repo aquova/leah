@@ -11,7 +11,9 @@
 
   "app_name_publish": "Publish",
 
-  "commands_response_sync": "Commands have been synced.",
+  "commands_response_sync": "Commands are synced.",
+  "commands_response_strings": "Strings are reloaded.",
+  "commands_response_commands": "Commands are reloaded.",
   "commands_error_roles": "You need one of these {1} to use this command: {0}",
 
   "publish_response_verified": "Published in {0}!",

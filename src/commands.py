@@ -22,6 +22,19 @@ class Commands(commands.Cog):
         await self.bot.sync_guild(message.guild)
         await message.reply(content=strings.get("commands_response_sync"))
 
+    @commands.command(name="strings")
+    @commands.check(requires_admin)
+    async def reload_strings(self, message: discord.Message) -> None:
+        reload(strings)
+        self.bot.reload_strings()
+        await message.reply(content=strings.get("commands_response_strings"))
+
+    @commands.command(name="commands")
+    @commands.check(requires_admin)
+    async def reload_commands(self, message: discord.Message) -> None:
+        await self.bot.reload_extension(name="commands")
+        await message.reply(content=strings.get("commands_response_commands"))
+
 async def setup(bot: commands.Bot) -> None:
     cog: Commands = Commands(bot)
     await bot.add_cog(cog)
