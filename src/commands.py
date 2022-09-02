@@ -11,8 +11,6 @@ from utils import requires_admin
 
 
 class Commands(commands.Cog):
-    posted = set()
-
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 

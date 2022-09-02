@@ -22,7 +22,6 @@ class Leah(commands.Bot):
             intents=DISCORD_INTENTS,
             description=strings.get("client_description"),
             allowed_mentions=discord.AllowedMentions.none())
-        self.posted = set()
 
     async def sync_guild(self, guild: discord.Guild):
         self.tree.copy_global_to(guild=guild)
@@ -66,6 +65,10 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     reply = None
     success = False      # Reactions are added to messages based on success or failure
     fail_quietly = True  # Failure reactions are hidden by default
+    reaction_users = []
+    for reaction in message.reactions:
+        reaction_users.append([user async for user in reaction.users()])
+    posted = bot.user in sum(reaction_users, [])  # We avoid duplicate publish actions by checking for reactions
 
     # Staff interactions on verification channel posts by this bot
     if message.channel.id == VERIFY_CHAN:
@@ -78,8 +81,9 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = format_roles_error(strings.get("commands_error_roles"), VERIFY_ROLES)
 
         # Ignore messages that have been handled previously
-        elif message.id in bot.posted:
+        elif posted:
             reply = strings.get("publish_error_posted")
+            fail_quietly = True
 
         # Ignore reactions to invalid posts or posts not by this client in verification channel
         elif bot.user != message.author or not await publish_art(message=message):
@@ -102,8 +106,9 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = strings.get("publish_error_curated_other")
 
         # Ignore messages that have been handled previously
-        elif message.id in bot.posted:
+        elif posted:
             reply = strings.get("publish_error_posted")
+            fail_quietly = True
 
         # Publish self-curated posts
         else:
@@ -200,12 +205,12 @@ async def publish_mod(message: discord.Message) -> None:
 
 async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> None:
     """
-    Record a message as posted and then send to the given channel.
+    Send an embed to the given channel and do any extra actions.
     :param channel: The channel in which to send the embed.
     :param embed: A formatted embed based on some user-created message.
     :param message: The original message from a listening or self-curated channel.
     """
-    bot.posted.add(message.id)
+    # We don't do anything else here currently :/
     await channel.send(embed=embed)
 
 async def get_original_author(showcase_message: discord.Message) -> Optional[discord.Member]:
