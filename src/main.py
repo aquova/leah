@@ -193,20 +193,22 @@ async def publish_mod(message: discord.Message) -> None:
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
     author = message.author
-    title = strings.get("message_showcase").format(str(message.channel))
-    # Add original text content
-    text = message.content
-    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
-    # Add original embedded content
+    source_embed = None
+    # Check for linked content
     url = None
     if len(message.embeds) > 0:
-        e = message.embeds[0]
-        url = e.image.proxy_url
+        source_embed = message.embeds[0]
+        url = source_embed.image.proxy_url
         if url is None:
-            url = e.thumbnail.proxy_url
+            url = source_embed.thumbnail.proxy_url
     else:
         if len(message.attachments) > 0:
             url = message.attachments[0].url
+    title = strings.get("message_showcase").format(str(message.channel)) if source_embed is None else source_embed.title
+    # Add original text content
+    text = message.content if source_embed is None or message.content != source_embed.url else f"{source_embed.url}\n\n{source_embed.description}"
+    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+    # Add original embedded content
     if url is not None:
         embed.set_image(url=url)
     # Add jumplink to original message
