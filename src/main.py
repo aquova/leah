@@ -7,7 +7,7 @@ import random
 import strings
 import discord
 from discord.ext import commands
-from config import COMMAND_PREFIX, EXTENSIONS, GUILDS, DISCORD_KEY, DISCORD_INTENTS, \
+from config import COMMAND_PREFIX, EXTENSIONS, DISCORD_KEY, DISCORD_INTENTS, \
     ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, ADMIN_ROLE
 from importlib import reload
 from typing import Optional
@@ -55,7 +55,7 @@ async def on_message(message: discord.Message) -> None:
     if message.channel.id in ART_CHANS:
         await verify_art(message=message)
 
-@bot.tree.context_menu(name=strings.get("app_name_publish"), guilds=GUILDS)
+@bot.tree.context_menu(name=strings.get("app_name_publish"), guilds=[guild.id for guild in bot.guilds])
 async def command_publish(interaction: discord.Interaction, message: discord.Message):
     """
     Reposts a message from a self-curated or verification channel as a formatted embed to a showcase or gallery channel,
