@@ -65,10 +65,13 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     reply = None
     success = False      # Reactions are added to messages based on success or failure
     fail_quietly = True  # Failure reactions are hidden by default
-    reaction_users = []
+
+    # We avoid duplicate publish actions by checking for reactions
+    posted = False
     for reaction in message.reactions:
-        reaction_users.append([user async for user in reaction.users()])
-    posted = bot.user in sum(reaction_users, [])  # We avoid duplicate publish actions by checking for reactions
+        posted = bot.user in [user async for user in reaction.users()]
+        if posted:
+            break
 
     # Interactions on verification channel posts by this bot
     if message.channel.id == VERIFY_CHAN:
