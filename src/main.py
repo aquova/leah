@@ -148,11 +148,8 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     await interaction.response.send_message(f"{emoji}\t{reply}", ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
-    try:
-        if success or not fail_quietly:
-            await message.add_reaction(emoji)
-    except:
-        return
+    if message is not None and (success or not fail_quietly):
+        await message.add_reaction(emoji)
 
 async def verify_art(message: discord.Message) -> None:
     """
@@ -168,23 +165,22 @@ async def publish_art(message: discord.Message) -> bool:
     Creates a published message with embedded content for the bot to repost in the gallery channel.
     """
     gallery = bot.get_channel(GALLERY_CHAN)
-    try:
-        author = await message.guild.fetch_member(message.raw_mentions[0])
-        linked_message = await get_linked_message(repost_message=message)
-        title = random.choice(strings.get("message_gallery")).format(str(linked_message.channel))
-        split = message.content.split("\n")
-        # Add original text content
-        text = "\n".join(split[1:-2])
-        embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
-        # Add original embedded content
-        embed.set_image(url=split[-1])
-        # Add jumplink to original message
-        embed.url = split[-2]
-        # Add user preview
-        embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
-        await send_embed(channel=gallery, embed=embed, message=message)
-    except:
+    author = await message.guild.fetch_member(message.raw_mentions[0])
+    linked_message = await get_linked_message(repost_message=message)
+    if linked_message is None:
         return False
+    title = random.choice(strings.get("message_gallery")).format(str(linked_message.channel))
+    split = message.content.split("\n")
+    # Add original text content
+    text = "\n".join(split[1:-2])
+    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+    # Add original embedded content
+    embed.set_image(url=split[-1])
+    # Add jumplink to original message
+    embed.url = split[-2]
+    # Add user preview
+    embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
+    await send_embed(channel=gallery, embed=embed, message=message)
     return True
 
 async def publish_mod(message: discord.Message) -> None:
@@ -235,15 +231,12 @@ async def get_linked_message(repost_message: discord.Message) -> Optional[discor
     :param repost_message: A message posted in any showcase channel.
     :return: The original author of a given self-curated showcase message, or None if not found.
     """
-    try:
-        # A jumplink to the original message in the embed URL for us to parse here
-        url = repost_message.content.split("\n")[-2] if repost_message.channel.id == VERIFY_CHAN else repost_message.embeds[0].url
-        split_url = url.split("/")
-        original_channel = repost_message.guild.get_channel(int(split_url[-2]))
-        original_message = await original_channel.fetch_message(int(split_url[-1]))
-        return original_message
-    except:
-        return None
+    # A jumplink to the original message in the embed URL for us to parse here
+    url = repost_message.content.split("\n")[-2] if repost_message.channel.id == VERIFY_CHAN else repost_message.embeds[0].url
+    split_url = url.split("/")
+    original_channel = repost_message.guild.get_channel(int(split_url[-2]))
+    original_message = None if original_channel is None else await original_channel.fetch_message(int(split_url[-1]))
+    return original_message
 
 
 # Run the bot with configured intents
