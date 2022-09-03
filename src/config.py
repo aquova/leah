@@ -7,7 +7,7 @@ import discord
 import json
 
 # Read config file
-CONFIG_PATH = "./private/config.json"
+CONFIG_PATH = "/private/config.json"
 with open(CONFIG_PATH) as config_file:
     cfg = json.load(config_file)
 
