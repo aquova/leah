@@ -12,7 +12,12 @@ with open(CONFIG_PATH) as config_file:
     cfg = json.load(config_file)
 
 # Parse config file
-DISCORD_INTENTS: discord.Intents = discord.Intents(**{flag: True for flag in cfg["intents"]})
+DISCORD_INTENTS: discord.Intents = discord.Intents(
+    guilds=True,
+    guild_messages=True,
+    message_content=True,
+    emojis=True
+)
 DISCORD_KEY = cfg["discord"]
 ART_CHANS = cfg["channels"]["listening"]
 MOD_CHANS = cfg["channels"]["selfcurated"]
