@@ -16,6 +16,10 @@ from utils import check_roles, format_roles_error
 
 # Bot definition
 class Leah(commands.Bot):
+    """
+    Bot used for curating and publishing submissions in Discord channels for a given guild.
+    Includes methods for updating and reloading commands and strings during runtime.
+    """
     def __init__(self):
         super().__init__(
             command_prefix=COMMAND_PREFIX,
@@ -23,19 +27,32 @@ class Leah(commands.Bot):
             description=strings.get("client_description"),
             allowed_mentions=discord.AllowedMentions.none())
 
-    async def sync_guild(self, guild: discord.Guild):
-        self.tree.copy_global_to(guild=guild)
-        await self.tree.sync(guild=guild)
-
-    async def setup_hook(self) -> None:
+    async def setup_hook(self):
+        """
+        Inherited from Client. Called once internally after login. Used to load all initial command extensions.
+        """
         # Load all extensions on setup
         for ext in EXTENSIONS:
             await self.load_extension(name=ext)
 
     async def on_ready(self):
+        """
+        Inherited from Client. Called once internally after all setup. Used only to log notice.
+        """
         print(strings.get("client_login").format(bot.user.name, bot.user.discriminator, bot.user.id))
 
-    def reload_strings(self):
+    async def sync_guild(self, guild: discord.Guild):
+        """
+        Syncs app commands from this bot with the remote Discord state when required to apply changes.
+        :param guild: Discord guild to sync commands with.
+        """
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
+
+    def reload_strings(self) -> None:
+        """
+        Reloads all text strings from data file for bot commands and interactions.
+        """
         reload(strings)
 
 
