@@ -105,7 +105,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = format_roles_error(strings.get("commands_error_roles"), SHOWCASE_ROLES)
 
         # Ignore interactions from users other than the message author
-        elif interaction.user != message.author or not isinstance(interaction.user, discord.Member):
+        elif interaction.user != message.author:
             reply = strings.get("publish_error_curated_other")
 
         # Ignore messages that have been handled previously
