@@ -25,7 +25,7 @@ def check_roles(user: Union[discord.User, discord.Member], roles: List[discord.R
     :return: Whether a user has any of the roles in a given list.
     """
     return (isinstance(user, discord.Member)
-            and len(roles) > 0 and len([r for r in user.roles if r.id in roles]) > 0)
+            and len(roles) > 0 and len([r for r in user.roles if r.id in roles or r.id == ADMIN_ROLE]) > 0)
 
 def requires_admin(ctx: Context) -> bool:
     """
