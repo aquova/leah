@@ -208,7 +208,7 @@ async def publish_mod(message: discord.Message) -> None:
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
-    author = message.author
+    author = await message.guild.fetch_member(message.author.id)
     source_embed = None
     # Check for linked content
     url = None
