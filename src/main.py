@@ -193,7 +193,7 @@ async def publish_art(message: discord.Message) -> bool:
     split = message.content.split("\n")
     # Add original text content
     text = "\n".join(split[1:-2])
-    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+    embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
     # Add original embedded content
     embed.set_image(url=split[-1])
     # Add jumplink to original message
@@ -208,7 +208,7 @@ async def publish_mod(message: discord.Message) -> None:
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
-    author = message.author
+    author = await message.guild.fetch_member(message.author.id)
     source_embed = None
     # Check for linked content
     url = None
@@ -223,7 +223,7 @@ async def publish_mod(message: discord.Message) -> None:
     title = strings.get("message_showcase").format(str(message.channel)) if source_embed is None else source_embed.title
     # Add original text content
     text = message.content if source_embed is None or message.content != source_embed.url else f"{source_embed.url}\n\n{source_embed.description}"
-    embed = discord.Embed(title=title, description=text, type="rich", color=author.color)
+    embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
     # Add original embedded content
     if url is not None:
         embed.set_image(url=url)
