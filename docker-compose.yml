@@ -5,4 +5,3 @@ services:
     restart: unless-stopped
     volumes:
       - ./src:/leah
-      - ./private:/private
