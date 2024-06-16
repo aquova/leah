@@ -111,7 +111,6 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Publish verified posts to gallery channel
         else:
-            reply = strings.get("publish_response_verified").format(f"<#{GALLERY_CHAN}>")
             success = True
 
     # User interactions on posts in self-curated channel
