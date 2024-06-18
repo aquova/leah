@@ -111,6 +111,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Publish verified posts to gallery channel
         else:
+            reply = strings.get("publish_response_verified").format(f"<#{GALLERY_CHAN}>")
             success = True
 
     # User interactions on posts in self-curated channel
@@ -162,10 +163,9 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
     # Send a secret reply to the commander
     emoji = strings.emoji_success if success else strings.emoji_failure
-    if reply is not None:
-        await interaction.response.send_message(f"{emoji}\t{reply}", ephemeral=True)
-    else:
-        await interaction.response.defer()
+    if reply is None:
+        reply = strings.get("publish_error_generic")
+    await interaction.response.send_message(f"{emoji}\t{reply}", ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
     if message is not None and (success or not fail_quietly):
