@@ -165,7 +165,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     emoji = strings.emoji_success if success else strings.emoji_failure
     if reply is None:
         reply = strings.get("publish_error_generic")
-    await interaction.response.send_message(f"{emoji}\t{reply}", ephemeral=True)
+    await interaction.response.send_message(f"{emoji}\t{reply}\n{message.jump_url}", ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
     if message is not None and (success or not fail_quietly):
