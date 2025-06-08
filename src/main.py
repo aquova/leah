@@ -216,9 +216,14 @@ async def publish_mod(message: discord.Message) -> None:
     else:
         if len(message.attachments) > 0:
             url = message.attachments[0].url
-    title = strings.get("message_showcase").format(str(message.channel)) if source_embed is None else source_embed.title
+    title = strings.get("message_showcase").format(str(message.channel))
     # Add original text content
-    text = message.content if source_embed is None or message.content != source_embed.url else f"{source_embed.url}\n\n{source_embed.description}"
+    if source_embed is None or message.content != source_embed.url:
+        text = message.content
+    elif source_embed.description is not None:
+        text = f"{source_embed.url}\n\n{source_embed.description}"
+    else:
+        text = source_embed.url
     embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
     # Add original embedded content
     if url is not None:
