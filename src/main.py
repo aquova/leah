@@ -8,7 +8,8 @@ import strings
 import discord
 from discord.ext import commands
 from config import COMMAND_PREFIX, EXTENSIONS, DISCORD_KEY, DISCORD_INTENTS, \
-    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, ADMIN_ROLE
+    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, \
+    ALLOW_SHOWCASE_OTHER_USERS
 from importlib import reload
 from typing import Optional
 from utils import check_roles, format_roles_error
@@ -123,7 +124,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = format_roles_error(strings.get("commands_error_roles"), SHOWCASE_ROLES)
 
         # Ignore interactions from users other than the message author
-        elif interaction.user != message.author:
+        elif interaction.user != message.author and not ALLOW_SHOWCASE_OTHER_USERS:
             reply = strings.get("publish_error_curated_other")
 
         # Ignore messages that have been handled previously
@@ -135,7 +136,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         else:
             reply = strings.get("publish_response_curated_self").format(f"<#{SHOWCASE_CHAN}>")
             success = True
-            await publish_mod(message=message)
+            await publish_mod(message=message, published_by=interaction.user)
 
     # User interactions on posts in showcase channel
     elif message.channel.id == SHOWCASE_CHAN:
@@ -145,7 +146,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         linked_message = await get_linked_message(repost_message=message)
 
         # Ignore interactions from users other than the message author
-        if interaction.user != linked_message.author:
+        if interaction.user != linked_message.author and not ALLOW_SHOWCASE_OTHER_USERS:
             reply = strings.get("publish_error_remove_other")
 
         # Remove showcase posts
@@ -206,7 +207,7 @@ async def publish_art(message: discord.Message) -> bool:
     await send_embed(channel=gallery, embed=embed, message=message)
     return True
 
-async def publish_mod(message: discord.Message) -> None:
+async def publish_mod(message: discord.Message, published_by: discord.Member) -> None:
     """
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
