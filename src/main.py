@@ -84,6 +84,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     success = False      # Reactions are added to messages based on success or failure
     fail_quietly = True  # Failure reactions are hidden by default
     react = True         # Whether to suppress reactions (e.g. in case interaction message was removed)
+    reply_url = message.jump_url    # Link appended to bot reply message
 
     # We avoid duplicate publish actions by checking for reactions
     posted = False
@@ -134,9 +135,10 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Publish self-curated posts
         else:
-            reply = strings.get("publish_response_curated_self").format(f"<#{SHOWCASE_CHAN}>")
             success = True
-            await publish_mod(message=message, published_by=interaction.user)
+            published_message = await publish_mod(message=message, published_by=interaction.user)
+            reply_url = published_message.jump_url
+            reply = strings.get("publish_response_curated_self").format(reply_url)
 
     # User interactions on posts in showcase channel
     elif message.channel.id == SHOWCASE_CHAN:
@@ -154,6 +156,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = strings.get("publish_response_remove_self")
             success = True
             react = False
+            reply_url = linked_message.jump_url
             await message.delete()
 
             # Remove publish reactions from original message to allow for republishing
@@ -169,7 +172,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     emoji = strings.emoji_success if success else strings.emoji_failure
     if reply is None:
         reply = strings.get("publish_error_generic")
-    await interaction.response.send_message(f"{emoji}\t{reply}\n{message.jump_url}", ephemeral=True)
+    await interaction.response.send_message(content=reply, ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
     if message is not None and (react and (success or not fail_quietly)):
@@ -234,12 +237,12 @@ async def publish_mod(message: discord.Message, published_by: discord.Member) ->
 
     # Add original text content
     if source_embed is None or message.content != source_embed.url:
-        text = message.content
+        description = message.content
     elif source_embed.description is not None:
-        text = f"{source_embed.url}\n\n{source_embed.description}"
+        description = f"{source_embed.url}\n\n{source_embed.description}"
     else:
-        text = source_embed.url
-    embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
+        description = source_embed.url
+    embed = discord.Embed(title=title, description=description, type="rich", colour=author.colour)
 
     # Add original embedded content
     if url is not None:
@@ -251,17 +254,22 @@ async def publish_mod(message: discord.Message, published_by: discord.Member) ->
     # Add user preview
     embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
 
-    return await send_embed(channel=channel, embed=embed, message=message)
+    # Watermark published posts showcased by others
+    text = None
+    if (published_by is not None) and (published_by.id != message.author.id):
+        text = strings.get('message_showcased_other').format(published_by.mention, strings.emoji_redirect)
 
-async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> discord.Message:
+    return await send_embed(channel=channel, embed=embed, text=text)
+
+async def send_embed(channel: discord.TextChannel, embed: discord.Embed, text: Optional[str] = None) -> discord.Message:
     """
     Send an embed to the given channel and do any extra actions.
     :param channel: The channel in which to send the embed.
     :param embed: A formatted embed based on some user-created message.
-    :param message: The original message from a listening or self-curated channel.
+    :param text: Optional additional text appearing above the embed.
     """
     # We don't do anything else here currently :/
-    return await channel.send(embed=embed)
+    return await channel.send(content=text, embed=embed)
 
 async def get_linked_message(repost_message: discord.Message) -> Optional[discord.Message]:
     """

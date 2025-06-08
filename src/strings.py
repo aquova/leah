@@ -12,6 +12,7 @@ with open(file=STRINGS_PATH, mode="r", encoding="utf8") as strings_file:
 
 emoji_success = "\N{WHITE HEAVY CHECK MARK}"
 emoji_failure = "\N{CROSS MARK}"
+emoji_redirect = "\N{RIGHTWARDS ARROW WITH HOOK}"
 
 def get(__name: str) -> Optional[str]:
     return _data.get(__name)
