@@ -143,12 +143,8 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         # Users without a showcase role may still remove any of their posts from the showcase
         linked_message = await get_linked_message(repost_message=message)
 
-        # Ignore remove attempts on broken links
-        if linked_message is None:
-            reply = strings.get("publish_error_remove").format(", ".join([f"<@&{x}>" for x in ADMIN_ROLE]))
-
         # Ignore interactions from users other than the message author
-        elif interaction.user != linked_message.author:
+        if interaction.user != linked_message.author:
             reply = strings.get("publish_error_remove_other")
 
         # Remove showcase posts
