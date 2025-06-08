@@ -155,6 +155,11 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             react = False
             await message.delete()
 
+            # Remove publish reactions from original message to allow for republishing
+            if linked_message is not None:
+                await linked_message.remove_reaction(emoji=strings.emoji_success, member=bot.user)
+                await linked_message.remove_reaction(emoji=strings.emoji_failure, member=bot.user)
+
     # User interactions on posts in unhandled channels
     else:
         reply = strings.get("publish_error_channel")
