@@ -147,16 +147,21 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         # Users without a showcase role may still remove any of their posts from the showcase
         linked_message = await get_linked_message(repost_message=message)
 
-        # Ignore interactions from users other than the message author
-        if interaction.user != linked_message.author and not ALLOW_SHOWCASE_OTHER_USERS:
+        # Posts showcased by others are signed in the message content, outside the showcase embed
+        is_published = len(message.raw_mentions)
+        published_by = message.raw_mentions[0] if is_published else None
+        published_by_other = is_published and interaction.user.id == published_by
+
+        # Ignore interactions from users other than the message author or publisher
+        if not interaction.user.id == linked_message.author.id and not published_by_other:
             reply = strings.get("publish_error_remove_other")
 
         # Remove showcase posts
         else:
-            reply = strings.get("publish_response_remove_self")
             success = True
             react = False
             reply_url = linked_message.jump_url
+            reply = strings.get("publish_response_remove_other" if published_by_other else "publish_response_remove_self").format(reply_url)
             await message.delete()
 
             # Remove publish reactions from original message to allow for republishing
