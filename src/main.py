@@ -184,7 +184,7 @@ async def verify_art(message: discord.Message) -> None:
     for img in message.attachments:
         await verify.send(strings.get("message_verify").format(f"<@{message.author.id}>", message.content, img.url, message.jump_url))
 
-async def publish_art(message: discord.Message) -> bool:
+async def publish_art(message: discord.Message) -> Optional[discord.Message]:
     """
     Creates a published message with embedded content for the bot to repost in the gallery channel.
     """
@@ -192,28 +192,34 @@ async def publish_art(message: discord.Message) -> bool:
     author = await message.guild.fetch_member(message.raw_mentions[0])
     linked_message = await get_linked_message(repost_message=message)
     if linked_message is None:
-        return False
+        return None
+
     title = random.choice(strings.get("message_gallery")).format(str(linked_message.channel))
     split = message.content.split("\n")
+
     # Add original text content
     text = "\n".join(split[1:-2])
     embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
+
     # Add original embedded content
     embed.set_image(url=split[-1])
+
     # Add jumplink to original message
     embed.url = split[-2]
+
     # Add user preview
     embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
-    await send_embed(channel=gallery, embed=embed, message=message)
-    return True
 
-async def publish_mod(message: discord.Message, published_by: discord.Member) -> None:
+    return await send_embed(channel=gallery, embed=embed)
+
+async def publish_mod(message: discord.Message, published_by: discord.Member) -> Optional[discord.Message]:
     """
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
     author = await message.guild.fetch_member(message.author.id)
     source_embed = None
+
     # Check for linked content
     url = None
     if len(message.embeds) > 0:
@@ -225,6 +231,7 @@ async def publish_mod(message: discord.Message, published_by: discord.Member) ->
         if len(message.attachments) > 0:
             url = message.attachments[0].url
     title = strings.get("message_showcase").format(str(message.channel))
+
     # Add original text content
     if source_embed is None or message.content != source_embed.url:
         text = message.content
@@ -233,16 +240,20 @@ async def publish_mod(message: discord.Message, published_by: discord.Member) ->
     else:
         text = source_embed.url
     embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
+
     # Add original embedded content
     if url is not None:
         embed.set_image(url=url)
+
     # Add jumplink to original message
     embed.url = message.jump_url
+
     # Add user preview
     embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
-    await send_embed(channel=channel, embed=embed, message=message)
 
-async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> None:
+    return await send_embed(channel=channel, embed=embed, message=message)
+
+async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> discord.Message:
     """
     Send an embed to the given channel and do any extra actions.
     :param channel: The channel in which to send the embed.
@@ -250,7 +261,7 @@ async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message
     :param message: The original message from a listening or self-curated channel.
     """
     # We don't do anything else here currently :/
-    await channel.send(embed=embed)
+    return await channel.send(embed=embed)
 
 async def get_linked_message(repost_message: discord.Message) -> Optional[discord.Message]:
     """
