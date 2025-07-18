@@ -1,7 +1,7 @@
-version: '3'
 services:
   leah:
     image: aquova/leah:latest
     restart: unless-stopped
+    container_name: leah
     volumes:
-      - ./src:/leah
+      - ./private:/leah/private

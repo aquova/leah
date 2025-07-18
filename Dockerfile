@@ -1,10 +1,6 @@
-FROM python:3.11-alpine
+FROM ghcr.io/astral-sh/uv:python3.11-alpine
 
-RUN apk update && apk add \
-    build-base
-
-ADD requirements.txt /leah/requirements.txt
-RUN pip3 install -r /leah/requirements.txt
-
+ADD . /leah
 WORKDIR /leah
-CMD ["python3", "-u", "main.py"]
+RUN uv sync --frozen
+CMD ["uv", "run", "src/main.py"]

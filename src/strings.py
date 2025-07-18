@@ -4,9 +4,12 @@
 # https://github.com/StardewValleyDiscord/leah
 
 import json
+import os
 from typing import Optional
 
-STRINGS_PATH = "assets/strings.json"
+CURRENT_DIR = os.path.dirname(__file__)
+ASSETS_PATH = os.path.join(CURRENT_DIR, "assets")
+STRINGS_PATH = os.path.join(ASSETS_PATH, "strings.json")
 with open(file=STRINGS_PATH, mode="r", encoding="utf8") as strings_file:
     _data = json.load(strings_file)
 
