@@ -8,7 +8,8 @@ import strings
 import discord
 from discord.ext import commands
 from config import COMMAND_PREFIX, EXTENSIONS, DISCORD_KEY, DISCORD_INTENTS, \
-    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, ADMIN_ROLE
+    ART_CHANS, MOD_CHANS, VERIFY_CHAN, GALLERY_CHAN, SHOWCASE_CHAN, VERIFY_ROLES, SHOWCASE_ROLES, \
+    ALLOW_SHOWCASE_OTHER_USERS
 from importlib import reload
 from typing import Optional
 from utils import check_roles, format_roles_error
@@ -82,6 +83,8 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     reply = None
     success = False      # Reactions are added to messages based on success or failure
     fail_quietly = True  # Failure reactions are hidden by default
+    react = True         # Whether to suppress reactions (e.g. in case interaction message was removed)
+    reply_url = message.jump_url    # Link appended to bot reply message
 
     # We avoid duplicate publish actions by checking for reactions
     posted = False
@@ -122,7 +125,7 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
             reply = format_roles_error(strings.get("commands_error_roles"), SHOWCASE_ROLES)
 
         # Ignore interactions from users other than the message author
-        elif interaction.user != message.author:
+        elif interaction.user != message.author and not ALLOW_SHOWCASE_OTHER_USERS:
             reply = strings.get("publish_error_curated_other")
 
         # Ignore messages that have been handled previously
@@ -132,9 +135,10 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
 
         # Publish self-curated posts
         else:
-            reply = strings.get("publish_response_curated_self").format(f"<#{SHOWCASE_CHAN}>")
             success = True
-            await publish_mod(message=message)
+            published_message = await publish_mod(message=message, published_by=interaction.user)
+            reply_url = published_message.jump_url
+            reply = strings.get("publish_response_curated_self").format(reply_url)
 
     # User interactions on posts in showcase channel
     elif message.channel.id == SHOWCASE_CHAN:
@@ -143,19 +147,27 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
         # Users without a showcase role may still remove any of their posts from the showcase
         linked_message = await get_linked_message(repost_message=message)
 
-        # Ignore remove attempts on broken links
-        if linked_message is None:
-            reply = strings.get("publish_error_remove").format(", ".join([f"<@&{x}>" for x in ADMIN_ROLE]))
+        # Posts showcased by others are signed in the message content, outside the showcase embed
+        is_published = len(message.raw_mentions)
+        published_by = message.raw_mentions[0] if is_published else None
+        published_by_other = is_published and interaction.user.id == published_by
 
-        # Ignore interactions from users other than the message author
-        elif interaction.user != linked_message.author:
+        # Ignore interactions from users other than the message author or publisher
+        if not interaction.user.id == linked_message.author.id and not published_by_other:
             reply = strings.get("publish_error_remove_other")
 
         # Remove showcase posts
         else:
-            reply = strings.get("publish_response_remove_self")
             success = True
+            react = False
+            reply_url = linked_message.jump_url
+            reply = strings.get("publish_response_remove_other" if published_by_other else "publish_response_remove_self").format(reply_url)
             await message.delete()
+
+            # Remove publish reactions from original message to allow for republishing
+            if linked_message is not None:
+                await linked_message.remove_reaction(emoji=strings.emoji_success, member=bot.user)
+                await linked_message.remove_reaction(emoji=strings.emoji_failure, member=bot.user)
 
     # User interactions on posts in unhandled channels
     else:
@@ -165,10 +177,10 @@ async def command_publish(interaction: discord.Interaction, message: discord.Mes
     emoji = strings.emoji_success if success else strings.emoji_failure
     if reply is None:
         reply = strings.get("publish_error_generic")
-    await interaction.response.send_message(f"{emoji}\t{reply}\n{message.jump_url}", ephemeral=True)
+    await interaction.response.send_message(content=reply, ephemeral=True)
 
     # Add a reaction to the post to show it's been interacted with
-    if message is not None and (success or not fail_quietly):
+    if message is not None and (react and (success or not fail_quietly)):
         await message.add_reaction(emoji)
 
 async def verify_art(message: discord.Message) -> None:
@@ -180,7 +192,7 @@ async def verify_art(message: discord.Message) -> None:
     for img in message.attachments:
         await verify.send(strings.get("message_verify").format(f"<@{message.author.id}>", message.content, img.url, message.jump_url))
 
-async def publish_art(message: discord.Message) -> bool:
+async def publish_art(message: discord.Message) -> Optional[discord.Message]:
     """
     Creates a published message with embedded content for the bot to repost in the gallery channel.
     """
@@ -188,28 +200,34 @@ async def publish_art(message: discord.Message) -> bool:
     author = await message.guild.fetch_member(message.raw_mentions[0])
     linked_message = await get_linked_message(repost_message=message)
     if linked_message is None:
-        return False
+        return None
+
     title = random.choice(strings.get("message_gallery")).format(str(linked_message.channel))
     split = message.content.split("\n")
+
     # Add original text content
     text = "\n".join(split[1:-2])
     embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
+
     # Add original embedded content
     embed.set_image(url=split[-1])
+
     # Add jumplink to original message
     embed.url = split[-2]
+
     # Add user preview
     embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
-    await send_embed(channel=gallery, embed=embed, message=message)
-    return True
 
-async def publish_mod(message: discord.Message) -> None:
+    return await send_embed(channel=gallery, embed=embed)
+
+async def publish_mod(message: discord.Message, published_by: discord.Member) -> Optional[discord.Message]:
     """
     Creates a published message with embedded content for the bot to repost in the showcase channel.
     """
     channel = bot.get_channel(SHOWCASE_CHAN)
     author = await message.guild.fetch_member(message.author.id)
     source_embed = None
+
     # Check for linked content
     url = None
     if len(message.embeds) > 0:
@@ -220,28 +238,43 @@ async def publish_mod(message: discord.Message) -> None:
     else:
         if len(message.attachments) > 0:
             url = message.attachments[0].url
-    title = strings.get("message_showcase").format(str(message.channel)) if source_embed is None else source_embed.title
+    title = strings.get("message_showcase").format(str(message.channel))
+
     # Add original text content
-    text = message.content if source_embed is None or message.content != source_embed.url else f"{source_embed.url}\n\n{source_embed.description}"
-    embed = discord.Embed(title=title, description=text, type="rich", colour=author.colour)
+    if source_embed is None or message.content != source_embed.url:
+        description = message.content
+    elif source_embed.description is not None:
+        description = f"{source_embed.url}\n\n{source_embed.description}"
+    else:
+        description = source_embed.url
+    embed = discord.Embed(title=title, description=description, type="rich", colour=author.colour)
+
     # Add original embedded content
     if url is not None:
         embed.set_image(url=url)
+
     # Add jumplink to original message
     embed.url = message.jump_url
+
     # Add user preview
     embed.set_author(name=author.display_name, url=embed.url, icon_url=author.display_avatar.url)
-    await send_embed(channel=channel, embed=embed, message=message)
 
-async def send_embed(channel: discord.TextChannel, embed: discord.Embed, message: discord.Message) -> None:
+    # Watermark published posts showcased by others
+    text = None
+    if (published_by is not None) and (published_by.id != message.author.id):
+        text = strings.get('message_showcased_other').format(published_by.mention, strings.emoji_redirect)
+
+    return await send_embed(channel=channel, embed=embed, text=text)
+
+async def send_embed(channel: discord.TextChannel, embed: discord.Embed, text: Optional[str] = None) -> discord.Message:
     """
     Send an embed to the given channel and do any extra actions.
     :param channel: The channel in which to send the embed.
     :param embed: A formatted embed based on some user-created message.
-    :param message: The original message from a listening or self-curated channel.
+    :param text: Optional additional text appearing above the embed.
     """
     # We don't do anything else here currently :/
-    await channel.send(embed=embed)
+    return await channel.send(content=text, embed=embed)
 
 async def get_linked_message(repost_message: discord.Message) -> Optional[discord.Message]:
     """
