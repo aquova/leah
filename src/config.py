@@ -4,12 +4,12 @@
 # https://github.com/StardewValleyDiscord/leah
 
 import discord
-import json
+import yaml
 
 # Read config file
-CONFIG_PATH = "private/config.json"
+CONFIG_PATH = "private/config.yaml"
 with open(CONFIG_PATH) as config_file:
-    cfg = json.load(config_file)
+    cfg = yaml.safe_load(config_file)
 
 # Parse config file
 DISCORD_INTENTS: discord.Intents = discord.Intents(
